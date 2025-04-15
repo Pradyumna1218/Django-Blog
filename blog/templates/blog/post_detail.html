@@ -1,0 +1,151 @@
+{% extends "blog/base.html" %}
+{% block content %}
+
+    {% if posts.author != user %}  
+    <div class="content-section border-0">        
+        <div class="d-flex align-items-center gap-2">
+            <h1>Subscribe to {{ posts.author }} -> </h1>
+            {% if is_following %}
+                <form action="{% url 'unsubscribe' profile_user.pk %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Unsubscribe</button>
+                </form>
+            {% else %}
+                <form action="{% url 'subscribe' profile_user.pk %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-sm">Subscribe</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <article class="media content-section d-flex align-items-center">
+        <img class="rounded-circle article-img" src="{{ posts.author.profile.image.url }}">
+        <div class="media-body">
+            <div class="article-metadata d-flex align-items-center">
+                <a class="me-2 author-name" href="{% url 'user-post' posts.author %}">{{ posts.author }}</a>
+                <small class="text-muted">{{ posts.date_posted|date:"F d, Y" }}</small>
+            </div>
+            <h2 class="article-title">{{ posts.title }}</h2>
+            <p class="article-content">{{ posts.content }}</p>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span id="like-count" style="font-weight: 600; font-size: 1.2rem;">
+                        {{ posts.total_likes }}
+                    </span>
+                    
+                    <button id="like-btn" class="btn btn-primary btn-sm">
+                        {% if user in posts.likes.all %}
+                            <i class="fas fa-thumbs-down"></i> Unlike
+                        {% else %}
+                            <i class="fas fa-thumbs-up"></i> Like
+                        {% endif %}
+                    </button>
+                </div>
+    
+                {% if posts.author != user %}
+                <div class="d-flex flex-column align-items-end gap-16">
+                    {% if user.is_authenticated %}
+                        <form method="POST" action="{% url 'post-detail' pk=posts.id %}" class="d-flex align-items-center gap-2">
+                            {% csrf_token %}
+                            <label for="rating" class="mb-0" style="font-weight: 600; font-size: 1.1rem; color: #555;">
+                                Average Rating: 
+                                <small style="font-size: 1rem; font-weight: 500; color: black;">
+                                    {{ avg_rating|floatformat:1 }}
+                                </small>
+                            </label>                            
+                            <select name="value" id="rating" class="form-select w-auto">
+                                {% for i in "12345" %}
+                                <option value="{{ i }}">{{ i }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-success btn-sm">Submit</button>
+                        </form>
+                        {% else %}
+                        <p><a href="{% url 'login' %}">Log in</a> to rate this post.</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                {% if posts.author == user %}
+                <label for="rating" class="mb-0" style="font-weight: 600; font-size: 1.1rem; color: #555;">
+                    Average Rating: 
+                    <small style="font-size: 1rem; font-weight: 500; color: black;">
+                        {{ avg_rating|floatformat:1 }}
+                    </small>
+                </label>                            
+                <div class="mt-3">
+                    <a class="btn btn-secondary btn-sm" href="{% url 'post-update' pk=posts.pk %}">Update</a>
+                    <a class="btn btn-danger btn-sm" href="{% url 'post-delete' pk=posts.pk %}">Delete</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </article>
+    
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== "") {
+                const cookies = document.cookie.split(";");
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === name + "=") {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        document.getElementById("like-btn").addEventListener("click", function() {
+            fetch("{% url 'post-like' posts.pk %}", {
+                method: "POST",  
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("like-count").innerText = data.total_likes;
+                const button = document.getElementById("like-btn");
+                if (data.liked) {
+                    button.innerHTML = '<i class="fas fa-thumbs-down"></i> Unlike';
+                } else {
+                    button.innerHTML = '<i class="fas fa-thumbs-up"></i> Like';
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    </script>
+
+    <h3>Comments</h3>
+    {% if user.is_authenticated %}
+    <div class="container">
+        <form method="POST" action="{% url 'comment' posts.pk %}">
+            {% csrf_token %}
+            <textarea name="content" rows="3" class="form-control mt-2" placeholder="Write a comment..." required></textarea>
+            <button type="submit" class="btn btn-primary mt-2">Post Comment</button>
+        </form>
+        {% else %}
+        <p><a href="{% url 'login' %}">Log in</a> to comment.</p>
+        {% endif %}
+    </div>
+
+    <div class="container mt-4">
+        {% for comment in comments %}
+            <div class="comment-box">
+                <strong>{{ comment.user.username }}</strong> - <small class="text-muted">{{ comment.date_posted|date:"f A, F d" }}</small>
+                <p>{{ comment.content }}</p>
+            </div>
+        {% empty %}
+            <p>No comments yet. Be the first to comment!</p>
+        {% endfor %}
+    </div>
+
+{% endblock content %}

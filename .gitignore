@@ -1,0 +1,32 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+
+venv/
+env/
+.venv/
+
+*.sqlite3
+db.sqlite3
+
+*.log
+
+media/
+
+random.txt
+timezone_naive_aware.png
+
+# Pipenv
+Pipfile.lock
+
+.DS_Store
+Thumbs.db
+
+.vscode/
+.idea/
+
+*/migrations/__pycache__/
+*/__pycache__/
+
+.env
+.env.*
