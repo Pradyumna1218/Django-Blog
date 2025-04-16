@@ -24,7 +24,7 @@ class UserRegistrationForm(forms.Form):
     
     def clean_password1(self):
         password1 = self.cleaned_data.get("password1")
-        if not any(char.isdigit() for char in password1):  # Checks if there is at least one number
+        if not any(char.isdigit() for char in password1):  
             raise forms.ValidationError("Password must contain at least one number.")
         return password1
 
@@ -98,5 +98,7 @@ class ProfileUpdateForm(forms.Form):
         return user.profile
     
 class RatingForm(forms.Form):
-    value = forms.ChoiceField(choices=[(i,i) for i in range(1,6)], widget= forms.Select(attrs={"class": "form-control"}), label= "Rate this post")
+    value = forms.ChoiceField(choices=[(i,i) for i in range(1,6)], 
+                              widget= forms.Select(attrs={"class": "form-control"}), 
+                              label= "Rate this post")
     

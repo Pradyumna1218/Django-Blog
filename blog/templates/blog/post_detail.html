@@ -45,6 +45,11 @@
                     </button>
                 </div>
     
+                {% if rating %}
+                    <small>Your rating: {{ rating.value }} </small>
+                {% else %}
+                    <small>You haven't rated this post yet.</small>
+                {% endif %}
                 {% if posts.author != user %}
                 <div class="d-flex flex-column align-items-end gap-16">
                     {% if user.is_authenticated %}

@@ -38,6 +38,7 @@ class PostDetailView(View):
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk, is_deleted=False)
         comments = Comments.objects.filter(post=post).order_by("-date_posted")
+        existing_rating = Ratings.objects.filter(post=post, user=request.user).first()
 
         is_following = False
         if request.user.is_authenticated:
@@ -52,7 +53,8 @@ class PostDetailView(View):
             "profile_user": profile_user,
             "is_following": is_following,  
             'avg_rating': avg_rating,
-            "form": form
+            "form": form,
+            "rating": existing_rating
         }
         return render(request, "blog/post_detail.html", context)
 
@@ -242,8 +244,10 @@ class SubscriptionPostView(LoginRequiredMixin, View):
 class RatingView(LoginRequiredMixin, View):
     def get(self, request,pk):
         post = get_object_or_404(Post, pk=pk, is_deleted=False)
-        form = RatingForm()
-        return render(request, 'blog/rate_post.html', {"form": form, "post":post})
+
+        form = RatingForm(initial={"value": existing_rating.value if existing_rating else None})
+
+        return render(request, 'blog/rate_post.html', {"form": form, "post":post, "rating": existing_rating})
     
     def post(self, request, pk):
         post = get_object_or_404(Post, pk=pk, is_deleted=False)
@@ -255,7 +259,6 @@ class RatingView(LoginRequiredMixin, View):
             )
             return redirect('post-detail', pk=post.id)
 
-        return render(request, 'blog/rate_post.html', {"form": form, "post":post})
 
 
 class MostPopular(View):
