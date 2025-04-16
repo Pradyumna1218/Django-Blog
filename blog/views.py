@@ -234,7 +234,6 @@ class SubscriptionPostView(LoginRequiredMixin, View):
         page_obj = paginator.get_page(page_number)
 
         context = {
-            "posts": page_obj.object_list,
             "page_obj": page_obj,
         }
 
@@ -244,10 +243,9 @@ class SubscriptionPostView(LoginRequiredMixin, View):
 class RatingView(LoginRequiredMixin, View):
     def get(self, request,pk):
         post = get_object_or_404(Post, pk=pk, is_deleted=False)
-
-        form = RatingForm(initial={"value": existing_rating.value if existing_rating else None})
-
-        return render(request, 'blog/rate_post.html', {"form": form, "post":post, "rating": existing_rating})
+        form = RatingForm()
+        
+        return render(request, 'blog/rate_post.html', {"form": form, "post":post})
     
     def post(self, request, pk):
         post = get_object_or_404(Post, pk=pk, is_deleted=False)

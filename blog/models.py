@@ -54,9 +54,6 @@ class Ratings(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="ratings")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     value = models.PositiveSmallIntegerField(choices =[(i,i) for i in range(1,6)])
-
-    def user_rating(self):
-        return self.value
     class Meta:
         unique_together = ('post', 'user')
     
